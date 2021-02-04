@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import Error
 import json
+import pandas as pd
 
 try:
     conn = psycopg2.connect(
@@ -61,7 +62,6 @@ def get_restaurants():
         else:
             return None
     else:
-        _create_table()
         return None
 
 
@@ -132,4 +132,9 @@ def delete_restaurant_by_id(id):
         return None
 
 
-print(get_restaurants())
+def _load_data():
+    df = pd.read_csv('/app/static/restaurants.csv')
+
+    for index, row in df.iterrows():
+        rest = dict(zip(row.index, row.values))
+        print(post_restaurant(rest))

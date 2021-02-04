@@ -19,7 +19,7 @@ def get_all_restaurants():
 
 @app.route('/restaurants/<id>', methods=['GET'])
 def restaurant_by_id(id):
-    response = get_restaurants(id)
+    response = get_restaurant_by_id(id)
     if response:
         return response
     else:
