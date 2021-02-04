@@ -63,3 +63,7 @@ def get_restaurants_by_radius():
     latitude = request.arg.get('latitude')
     longitude = request.arg.get('longitude')
     radius = request.arg.get('radius')
+
+
+if __name__ == '__main__':
+    app.run()
