@@ -7,11 +7,6 @@ from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant
 app = create_app()
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return render_template('404.html', error=error)
-
-
 @app.route('/restaurants', methods=['GET'])
 def get_all_restaurants():
     return get_restaurants()
