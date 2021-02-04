@@ -1,3 +1,4 @@
 flask
 flask_restful
 psycopg2-binary
+decouple

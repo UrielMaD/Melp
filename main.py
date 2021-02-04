@@ -9,18 +9,30 @@ app = create_app()
 
 @app.route('/restaurants', methods=['GET'])
 def get_all_restaurants():
-    return get_restaurants()
+    if get_restaurants():
+        return get_restaurants()
+    else:
+        response = Response("No restaurants", status=200, mimetype='application/json')
+        return response
 
 
 @app.route('/restaurants/<id>', methods=['GET'])
 def restaurant_by_id(id):
-    return get_restaurant_by_id(id)
+    if get_restaurants():
+        return get_restaurant_by_id(id)
+    else:
+        response = Response("Restaurant not found", status=200, mimetype='application/json')
+        return response
 
 
 @app.route('/restaurants', methods=['POST'])
 def add_restaurant():
     request_data = request.get_json()
-    return post_restaurant(request_data)
+    if post_restaurant(request_data):
+        return post_restaurant(request_data)
+    else:
+        response = Response("Restaurant not added", status=200, mimetype='application/json')
+        return response
 
 
 @app.route('/restaurants/<id>', methods=['DELETE'])
@@ -36,7 +48,11 @@ def remove_restaurant(id):
 @app.route('/restaurants/<id>', methods=['PUT'])
 def update_restaurant_by_id(id):
     request_data = request.get_json()
-    return update_restaurant(id, request_data)
+    if update_restaurant(id, request_data):
+        return update_restaurant(id, request_data)
+    else:
+        response = Response("Restaurant not updated", status=200, mimetype='application/json')
+        return response
 
 
 @app.route('/restaurants/statistics', methods=['GET'])

@@ -130,3 +130,6 @@ def delete_restaurant_by_id(id):
         return True
     else:
         return None
+
+
+print(get_restaurants())
