@@ -28,7 +28,8 @@ def _check_if_table_exists(name):
 
 
 def _create_table():
-    cur.execute("""CREATE TABLE Restaurants( 
+    cur.execute("""
+        CREATE TABLE restaurants ( 
         id VARCHAR(36) NOT NULL PRIMARY KEY,
         rating INT,
         name TEXT,
@@ -42,12 +43,14 @@ def _create_table():
         lng FLOAT
     )
     """)
+    cur.close()
+    conn.commit()
 
 
 def get_restaurants():
-    table_exists = _check_if_table_exists('Restaurants')
+    table_exists = _check_if_table_exists('restaurants')
     if table_exists:
-        cur.execute("""SELECT * FROM Restaurants""")
+        cur.execute("""SELECT * FROM restaurants""")
         headers = [x[0] for x in cur.description]
         rv = cur.fetchall()
         restaurants = []
@@ -63,9 +66,9 @@ def get_restaurants():
 
 
 def get_restaurant_by_id(id):
-    table_exists = _check_if_table_exists('Restaurants')
+    table_exists = _check_if_table_exists('restaurants')
     if table_exists:
-        cur.execute(f"SELECT * FROM Restaurants WHERE id = '{id}'")
+        cur.execute(f"SELECT * FROM restaurants WHERE id = '{id}'")
         headers = [x[0] for x in cur.description]
         rv = cur.fetchall()
         json_data = []
@@ -81,8 +84,10 @@ def get_restaurant_by_id(id):
 
 
 def post_restaurant(rest):
-    if _check_if_table_exists('Restaurants') and get_restaurant_by_id(rest['id']) is None:
-        query = """INSERT INTO Restaurants VALUES (%s, %d, %s, %s, %s, %s, %s, %s, %s, %d, %d)"""
+    if _check_if_table_exists('restaurants') and get_restaurant_by_id(rest['id']) is None:
+        query = """INSERT INTO restaurants(id, rating, name, site, email, phone, street,
+                                            city, state, lat, lng) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         cur.execute(query, (
             rest['id'], rest['rating'], rest['name'], rest['site'], rest['email'],
             rest['phone'], rest['street'], rest['city'], rest['state'], rest['lat'],
@@ -99,9 +104,9 @@ def post_restaurant(rest):
 
 
 def update_restaurant(id, rest):
-    if _check_if_table_exists('Restaurants') and get_restaurant_by_id(id) is not None:
-        query = """UPDATE Restaurants SET rating = %d, name = %s, site = %s, email = %s,
-                phone = %s, street = %s, city = %s, state = %s, lat = %d, lng = %d WHERE
+    if _check_if_table_exists('restaurants') and get_restaurant_by_id(id) is not None:
+        query = """UPDATE restaurants SET rating = %s, name = %s, site = %s, email = %s,
+                phone = %s, street = %s, city = %s, state = %s, lat = %s, lng = %s WHERE
                 id = %s"""
         cur.execute(query, (
             rest['rating'], rest['name'], rest['site'], rest['email'], rest['phone'],
@@ -120,11 +125,8 @@ def update_restaurant(id, rest):
 
 def delete_restaurant_by_id(id):
     if get_restaurant_by_id(id):
-        cur.execute(f"DELETE FROM Restaurants WHERE id = '{id}'")
+        cur.execute(f"DELETE FROM restaurants WHERE id = '{id}'")
         conn.commit()
         return True
     else:
         return None
-
-
-print(get_restaurants())
