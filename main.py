@@ -1,10 +1,15 @@
-from flask import request, Response
+from flask import request, Response, render_template
 
 from app import create_app
 from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant, \
     delete_restaurant_by_id, update_restaurant
 
 app = create_app()
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html', error=error)
 
 
 @app.route('/restaurants', methods=['GET'])

@@ -1,15 +1,16 @@
-import mariadb
+import psycopg2
+from psycopg2 import Error
 import json
 
 try:
-    conn = mariadb.connect(
-        user="uriel",
-        password="",
-        host="localhost",
-        port=3306,
-        database="melp"
+    conn = psycopg2.connect(
+        user="ojarcsdtkmvrpo",
+        password="668dcc1854b8c19e66faa5c744eabfff5824ec62158430eb9770184df646c5be",
+        host="ec2-3-222-11-129.compute-1.amazonaws.com",
+        port=5432,
+        database="da6kivfej96opc"
     )
-except mariadb.Error as e:
+except Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
 
 cur = conn.cursor()
@@ -17,7 +18,7 @@ cur = conn.cursor()
 
 def _check_if_table_exists(name):
     cur.execute(f"""
-        SHOW TABLES LIKE '{name}'
+        select * from information_schema.tables where table_name = '{name}'
         """)
     result = cur.fetchone()
     if result:
@@ -126,3 +127,4 @@ def delete_restaurant_by_id(id):
         return None
 
 
+print(get_restaurants())
