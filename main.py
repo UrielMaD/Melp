@@ -1,4 +1,4 @@
-from flask import request, Response, render_template
+from flask import request, Response
 
 from app import create_app
 from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant, \
@@ -9,8 +9,9 @@ app = create_app()
 
 @app.route('/restaurants', methods=['GET'])
 def get_all_restaurants():
-    if get_restaurants():
-        return get_restaurants()
+    response = get_restaurants()
+    if response:
+        return response
     else:
         response = Response("No restaurants", status=200, mimetype='application/json')
         return response
@@ -18,8 +19,9 @@ def get_all_restaurants():
 
 @app.route('/restaurants/<id>', methods=['GET'])
 def restaurant_by_id(id):
-    if get_restaurants():
-        return get_restaurant_by_id(id)
+    response = get_restaurants(id)
+    if response:
+        return response
     else:
         response = Response("Restaurant not found", status=200, mimetype='application/json')
         return response
@@ -29,7 +31,7 @@ def restaurant_by_id(id):
 def add_restaurant():
     request_data = request.get_json()
     if post_restaurant(request_data):
-        return post_restaurant(request_data)
+        return get_restaurant_by_id(request_data['id'])
     else:
         response = Response("Restaurant not added", status=200, mimetype='application/json')
         return response
@@ -48,8 +50,9 @@ def remove_restaurant(id):
 @app.route('/restaurants/<id>', methods=['PUT'])
 def update_restaurant_by_id(id):
     request_data = request.get_json()
-    if update_restaurant(id, request_data):
-        return update_restaurant(id, request_data)
+    response = update_restaurant(id, request_data)
+    if response:
+        return response
     else:
         response = Response("Restaurant not updated", status=200, mimetype='application/json')
         return response
