@@ -8,6 +8,7 @@ from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant
 app = create_app()
 
 
+# Route for the GET method that returns all restaurants
 @app.route('/restaurants', methods=['GET'])
 def get_all_restaurants():
     response = get_restaurants()
@@ -18,6 +19,8 @@ def get_all_restaurants():
         return response
 
 
+# Route for the GET method that returns a restaurant that matches
+# with given id
 @app.route('/restaurants/<id>', methods=['GET'])
 def restaurant_by_id(id):
     response = get_restaurant_by_id(id)
@@ -28,6 +31,7 @@ def restaurant_by_id(id):
         return response
 
 
+# Route for posting a restaurant
 @app.route('/restaurants', methods=['POST'])
 def add_restaurant():
     request_data = request.get_json()
@@ -38,6 +42,7 @@ def add_restaurant():
         return response
 
 
+# Route for deleting a restaurant
 @app.route('/restaurants/<id>', methods=['DELETE'])
 def remove_restaurant(id):
     if delete_restaurant_by_id(id):
@@ -48,6 +53,7 @@ def remove_restaurant(id):
         return response
 
 
+# Route for update information about a restaurant
 @app.route('/restaurants/<id>', methods=['PUT'])
 def update_restaurant_by_id(id):
     request_data = request.get_json()
@@ -59,6 +65,7 @@ def update_restaurant_by_id(id):
         return response
 
 
+# Route for the statistical data about restaurants within a circle
 @app.route('/restaurants/statistics', methods=['GET'])
 def get_restaurants_by_radius():
     lat = request.args.get('latitude')

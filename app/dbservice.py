@@ -19,6 +19,7 @@ cur = conn.cursor()
 register(conn)
 
 
+# Private function that checks if table exists
 def _check_if_table_exists(name):
     cur.execute(f"""
         select * from information_schema.tables where table_name = '{name}'
@@ -30,6 +31,7 @@ def _check_if_table_exists(name):
         return False
 
 
+# Private function that creates the table restaurants
 def _create_table():
     cur.execute("""
         CREATE TABLE restaurants ( 
@@ -53,6 +55,7 @@ def _create_table():
 COLUMNS = 'id, rating, name, site, email, phone, street, city, state, lat, lng'
 
 
+# Function that returns an array with all the restaurants in the data base
 def get_restaurants():
     table_exists = _check_if_table_exists('restaurants')
     if table_exists:
@@ -70,6 +73,7 @@ def get_restaurants():
         return None
 
 
+# Function thar returns a restaurant that matches with given id
 def get_restaurant_by_id(id):
     table_exists = _check_if_table_exists('restaurants')
     if table_exists:
@@ -88,17 +92,21 @@ def get_restaurant_by_id(id):
         return None
 
 
+# Function that post a restaurant in the database if it does not exists
 def post_restaurant(rest):
     if _check_if_table_exists('restaurants') and get_restaurant_by_id(rest['id']) is None:
         query = """INSERT INTO restaurants(id, rating, name, site, email, phone, street,
-                                            city, state, lat, lng, geom, ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-                ST_SetSRID(ST_MakePoint(%s, %s), 4326))"""
+                                            city, state, lat, lng) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         cur.execute(query, (
             rest['id'], rest['rating'], rest['name'], rest['site'], rest['email'],
             rest['phone'], rest['street'], rest['city'], rest['state'], rest['lat'],
-            rest['lng'], rest['lng'], rest['lat'],
+            rest['lng']
         ))
+        cur.execute(f"""
+                UPDATE restaurants SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326) 
+                WHERE id = '{rest['id']}'
+            """)
         conn.commit()
         result = get_restaurant_by_id(rest['id'])
         if result is not None:
@@ -109,6 +117,7 @@ def post_restaurant(rest):
         return None
 
 
+# Function that updates restaurant information if it exists
 def update_restaurant(id, rest):
     if _check_if_table_exists('restaurants') and get_restaurant_by_id(id) is not None:
         query = """UPDATE restaurants SET rating = %s, name = %s, site = %s, email = %s,
@@ -119,6 +128,10 @@ def update_restaurant(id, rest):
             rest['street'], rest['city'], rest['state'], rest['lat'], rest['lng'],
             rest['lng'], rest['lat'], id,
         ))
+        cur.execute(f"""
+                UPDATE restaurants SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326) 
+                WHERE id = '{id}'
+            """)
         conn.commit()
         result = get_restaurant_by_id(id)
         if result is not None:
@@ -129,6 +142,7 @@ def update_restaurant(id, rest):
         return None
 
 
+# Function that deletes a restaurant if it exists
 def delete_restaurant_by_id(id):
     if get_restaurant_by_id(id):
         cur.execute(f"DELETE FROM restaurants WHERE id = '{id}'")
@@ -138,6 +152,7 @@ def delete_restaurant_by_id(id):
         return None
 
 
+# Private function that loads all data from a csv file
 def _load_data():
     df = pd.read_csv('/app/static/restaurants.csv')
 
@@ -146,6 +161,7 @@ def _load_data():
         print(post_restaurant(rest))
 
 
+# Private function that creates the geom column to handle GEO queries
 def _create_geo_column():
     cur.execute("""
         SELECT AddGeometryColumn('restaurants', 'geom', 4326, 'POINT', 2);
@@ -156,6 +172,8 @@ def _create_geo_column():
     """)
 
 
+# Function that returns a cursor with all restaurants within a circle with
+# center given by 'lat' and 'lng' with a radius = r
 def get_restaurants_inside_circle(lat, lng, r):
     cur.execute(f"""
         SELECT rating FROM restaurants 
@@ -163,4 +181,3 @@ def get_restaurants_inside_circle(lat, lng, r):
     """)
     conn.commit()
     return cur
-
