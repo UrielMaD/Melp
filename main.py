@@ -76,4 +76,3 @@ def get_restaurants_by_radius():
 if __name__ == '__main__':
     app.run()
 
-https://intelimetrica-melp.herokuapp.com/restaurants/statistics?latitude=19.4400570537131&longitude=-99.1270470974249&radius=100
