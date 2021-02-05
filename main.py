@@ -60,11 +60,13 @@ def update_restaurant_by_id(id):
 
 @app.route('/restaurants/statistics', methods=['GET'])
 def get_restaurants_by_radius():
-    latitude = request.arg.get('latitude')
-    longitude = request.arg.get('longitude')
-    radius = request.arg.get('radius')
+    lat = request.arg.get('latitude')
+    lng = request.arg.get('longitude')
+    r = request.arg.get('radius')
 
-    data = get_restaurants_inside_circle(latitude, longitude, radius)
+    print(f'{lat}, {lng}, {r}')
+
+    data = get_restaurants_inside_circle(lat, lng, r)
 
     data_json = jsonify([x for x in data])
 
@@ -73,3 +75,5 @@ def get_restaurants_by_radius():
 
 if __name__ == '__main__':
     app.run()
+
+https://intelimetrica-melp.herokuapp.com/restaurants/statistics?latitude=19.4400570537131&longitude=-99.1270470974249&radius=100
