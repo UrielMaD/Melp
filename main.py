@@ -1,4 +1,5 @@
 from flask import request, Response, jsonify
+import numpy as np
 
 from app import create_app
 from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant, \
@@ -60,17 +61,20 @@ def update_restaurant_by_id(id):
 
 @app.route('/restaurants/statistics', methods=['GET'])
 def get_restaurants_by_radius():
-    lat = request.arg.get('latitude')
-    lng = request.arg.get('longitude')
-    r = request.arg.get('radius')
-
-    print(f'{lat}, {lng}, {r}')
+    lat = request.args.get('latitude')
+    lng = request.args.get('longitude')
+    r = request.args.get('radius')
 
     data = get_restaurants_inside_circle(lat, lng, r)
+    data = [x[0] for x in data]
 
-    data_json = jsonify([x for x in data])
+    stats = {
+        "count": len(data),
+        "avg": np.mean(data),
+        "std": np.std(data),
+    }
 
-    return data_json
+    return stats
 
 
 if __name__ == '__main__':

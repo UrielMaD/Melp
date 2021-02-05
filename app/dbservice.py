@@ -164,7 +164,3 @@ def get_restaurants_inside_circle(lat, lng, r):
     conn.commit()
     return cur
 
-
-#rests = get_restaurants_inside_circle(19.4400570537131, -99.1270470974249, 1000)
-#print(rests)
-#print([x for x in rests])
