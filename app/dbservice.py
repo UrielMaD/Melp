@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2 import Error
 import json
 import pandas as pd
+from postgis.psycopg import register
 
 try:
     conn = psycopg2.connect(
@@ -15,6 +16,7 @@ except Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
 
 cur = conn.cursor()
+register(conn)
 
 
 def _check_if_table_exists(name):
@@ -48,10 +50,13 @@ def _create_table():
     conn.commit()
 
 
+COLUMNS = 'id, rating, name, site, email, phone, street, city, state, lat, lng'
+
+
 def get_restaurants():
     table_exists = _check_if_table_exists('restaurants')
     if table_exists:
-        cur.execute("""SELECT * FROM restaurants""")
+        cur.execute(f"""SELECT {COLUMNS} FROM restaurants""")
         headers = [x[0] for x in cur.description]
         rv = cur.fetchall()
         restaurants = []
@@ -68,7 +73,7 @@ def get_restaurants():
 def get_restaurant_by_id(id):
     table_exists = _check_if_table_exists('restaurants')
     if table_exists:
-        cur.execute(f"SELECT * FROM restaurants WHERE id = '{id}'")
+        cur.execute(f"SELECT {COLUMNS} FROM restaurants WHERE id = '{id}'")
         headers = [x[0] for x in cur.description]
         rv = cur.fetchall()
         json_data = []
@@ -86,12 +91,13 @@ def get_restaurant_by_id(id):
 def post_restaurant(rest):
     if _check_if_table_exists('restaurants') and get_restaurant_by_id(rest['id']) is None:
         query = """INSERT INTO restaurants(id, rating, name, site, email, phone, street,
-                                            city, state, lat, lng) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                                            city, state, lat, lng, geom, ) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+                ST_SetSRID(ST_MakePoint(%s, %s), 4326))"""
         cur.execute(query, (
             rest['id'], rest['rating'], rest['name'], rest['site'], rest['email'],
             rest['phone'], rest['street'], rest['city'], rest['state'], rest['lat'],
-            rest['lng']
+            rest['lng'], rest['lng'], rest['lat'],
         ))
         conn.commit()
         result = get_restaurant_by_id(rest['id'])
@@ -106,12 +112,12 @@ def post_restaurant(rest):
 def update_restaurant(id, rest):
     if _check_if_table_exists('restaurants') and get_restaurant_by_id(id) is not None:
         query = """UPDATE restaurants SET rating = %s, name = %s, site = %s, email = %s,
-                phone = %s, street = %s, city = %s, state = %s, lat = %s, lng = %s WHERE
-                id = %s"""
+                phone = %s, street = %s, city = %s, state = %s, lat = %s, lng = %s,
+                geom = ST_SetSRID(ST_MakePoint(%s, %s), 4326) WHERE id = %s"""
         cur.execute(query, (
             rest['rating'], rest['name'], rest['site'], rest['email'], rest['phone'],
             rest['street'], rest['city'], rest['state'], rest['lat'], rest['lng'],
-            id,
+            rest['lng'], rest['lat'], id,
         ))
         conn.commit()
         result = get_restaurant_by_id(id)
@@ -138,3 +144,27 @@ def _load_data():
     for index, row in df.iterrows():
         rest = dict(zip(row.index, row.values))
         print(post_restaurant(rest))
+
+
+def _create_geo_column():
+    cur.execute("""
+        SELECT AddGeometryColumn('restaurants', 'geom', 4326, 'POINT', 2);
+    """)
+    cur.execute("""
+        UPDATE restaurants SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326); 
+        CREATE INDEX idx_restaurants ON restaurants USING gist(geom);
+    """)
+
+
+def get_restaurants_inside_circle(lat, lng, r):
+    cur.execute(f"""
+        SELECT rating FROM restaurants 
+        WHERE ST_DWithin(geom, ST_MakePoint({lng}, {lat})::geography, {r})
+    """)
+    conn.commit()
+    return cur
+
+
+#rests = get_restaurants_inside_circle(19.4400570537131, -99.1270470974249, 1000)
+#print(rests)
+#print([x for x in rests])

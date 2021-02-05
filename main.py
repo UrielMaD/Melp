@@ -1,8 +1,8 @@
-from flask import request, Response
+from flask import request, Response, jsonify
 
 from app import create_app
 from app.dbservice import get_restaurants, get_restaurant_by_id, post_restaurant, \
-    delete_restaurant_by_id, update_restaurant
+    delete_restaurant_by_id, update_restaurant, get_restaurants_inside_circle
 
 app = create_app()
 
@@ -63,6 +63,12 @@ def get_restaurants_by_radius():
     latitude = request.arg.get('latitude')
     longitude = request.arg.get('longitude')
     radius = request.arg.get('radius')
+
+    data = get_restaurants_inside_circle(latitude, longitude, radius)
+
+    data_json = jsonify([x for x in data])
+
+    return data_json
 
 
 if __name__ == '__main__':
